@@ -74,7 +74,6 @@ class Dictionary
 			char []          entryArray;
 			Iterator<String> shortIter;
 			String           shortWord;
-			char             c;
 			boolean          matchFound;
 
 			entry = entryIterator.next();
@@ -126,7 +125,7 @@ class Dictionary
 
 	void saveDictionary( String fileName )
 	{
-		Iterator entryIterator = entries.iterator();
+		Iterator<DictionaryEntry> entryIterator = entries.iterator();
 
 		try
 		{

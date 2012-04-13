@@ -8,12 +8,17 @@ class WordPanel extends JPanel
 {
 	Word [] words;
 	private final int NO_COLUMNS = 5;
+	private JPanel hBox;
 
 	WordPanel()
 	{
-		setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
+		setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		setPreferredSize( new Dimension( 400, 300 ) );
-		setBorder( new LineBorder( Color.black, 1, true ) );
+		hBox = new JPanel();
+		hBox.setLayout( new BoxLayout( hBox, BoxLayout.X_AXIS ) );
+		hBox.setBorder( new LineBorder( Color.black, 1, true ) );
+		add( Box.createRigidArea( new Dimension( 0, 4 ) ) );
+		add( hBox );
 	}
 
 	void setWordList( Collection<String> wordList )
@@ -21,9 +26,13 @@ class WordPanel extends JPanel
 		Iterator<String> iter = wordList.iterator();
 		JPanel           currentPanel;
 		int              nRows;
+		
+		hBox.removeAll();
 
 		currentPanel = new JPanel();
-	  currentPanel.setLayout(	new BoxLayout( currentPanel, BoxLayout.Y_AXIS ) );
+	    currentPanel.setLayout(	new BoxLayout( currentPanel, BoxLayout.Y_AXIS ) );
+
+	    currentPanel.add( Box.createRigidArea( new Dimension( 0, 10 ) ) );
 
 		words = new Word[ wordList.size() ];
 
@@ -35,15 +44,16 @@ class WordPanel extends JPanel
 
 			if( i % nRows == 0 && i != 0 )
 			{
-				add( currentPanel );
+				hBox.add( currentPanel );
 				currentPanel = new JPanel();
 				currentPanel.setLayout( new BoxLayout( currentPanel, BoxLayout.Y_AXIS ) );
+				currentPanel.add( Box.createRigidArea( new Dimension( 0, 10 ) ) );
 			}
 
 			currentPanel.add( words[i] );
 		}
 
-		add( currentPanel );
+		hBox.add( currentPanel );
 	}
 
 	void showWord( int index )
@@ -68,5 +78,17 @@ class WordPanel extends JPanel
 		for( int i = 0; i < words.length; i++ )
 			if( word.equals( words[i].toString() ) )
 				words[i].update(false);
+	}
+	
+	void showAllWords()
+	{
+		for( int i = 0; i < words.length; i++ )
+			words[i].update(true);
+	}
+	
+	void hideAllWords()
+	{
+		for( int i = 0; i < words.length; i++ )
+			words[i].update(false);
 	}
 }

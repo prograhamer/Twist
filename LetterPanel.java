@@ -5,10 +5,14 @@ import javax.swing.border.SoftBevelBorder;
 public class LetterPanel extends JPanel
 {
 	private JLabel [] letters;
+	private final Color standardBackground, warningBackground;
 
 	LetterPanel( int size )
 	{
 		super( new FlowLayout( FlowLayout.CENTER, 20, 0 ) );
+		
+		standardBackground = getBackground();
+		warningBackground = Color.red;
 
 		letters = new JLabel[size];
 
@@ -19,6 +23,7 @@ public class LetterPanel extends JPanel
 			letters[i].setBorder( new SoftBevelBorder( SoftBevelBorder.RAISED ) );
 			letters[i].setPreferredSize( new Dimension( 50, 50 ) );
 			letters[i].setHorizontalAlignment( JLabel.CENTER );
+			letters[i].setOpaque( true );
 			add( letters[i] );
 		}
 	}
@@ -33,5 +38,16 @@ public class LetterPanel extends JPanel
 	{
 		for( int i = 0; i < letters.length; i++ )
 			letters[i].setText( "" + newLetters[i] );
+	}
+	
+	void setWarning( boolean warn )
+	{
+		for( int i = 0; i < letters.length; i++ )
+		{
+			if( warn )
+				letters[i].setBackground( warningBackground );
+			else
+				letters[i].setBackground( standardBackground );
+		}
 	}
 }

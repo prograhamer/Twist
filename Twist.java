@@ -7,21 +7,28 @@ public class Twist extends JFrame
 	implements KeyListener, ActionListener
 {
 	private Dictionary	    dict;
-	private LetterPanel     letterPool, guessArea;
 	private WordPanel       wPanel;
+	private LetterPanel     letterPool, guessArea;
+	private StatusPanel     statusArea;
 	private DictionaryEntry currentEntry;
 	private JPanel          top;
+	private Timer           updateInterval;
 	private StringBuffer    poolLetters, guessLetters;
 	private int             guessWordLength;
+	
+	private int             score;
+	private boolean         longWordGuessed;
+	private int             countdown;
 
 	private final int       WORD_LENGTH = 7;
+	private final int       TIMER_LENGTH = 120;
 
-  public static void main( String args[] )
-  {
+	public static void main( String args[] )
+	{
 		Twist mainWindow = new Twist();
 
 		mainWindow.setVisible( true );
-  }
+	}
 
 	public Twist()
 	{
@@ -50,26 +57,112 @@ public class Twist extends JFrame
 		letterPool.addKeyListener( this );
 		letterPool.setFocusable( true );
 		letterPool.grabFocus();
+		
+		statusArea = new StatusPanel( this );
+		top.add( statusArea );
 
 		add( top, BorderLayout.NORTH );
 
 		pack();
+		
+		updateInterval = new Timer( 1000, this );
+		updateInterval.setRepeats( true );
+		updateInterval.setActionCommand( "timer0" );
 
 		dict = new Dictionary();
 		dict.loadDictionary();
 
-		currentEntry = dict.getEntry(0);
-
-		wPanel.setWordList( currentEntry.getLinkedWords() );
-		letterPool.update( currentEntry.getHeadWord() );
-
-		poolLetters = new StringBuffer( currentEntry.getHeadWord() );
-
+		poolLetters = new StringBuffer( WORD_LENGTH );
 		guessLetters = new StringBuffer( WORD_LENGTH );
-		guessWordLength = 0;
 
 		for( int i = 0; i < WORD_LENGTH; i++ )
+		{
+			poolLetters.append('-');
 			guessLetters.append(' ');
+		}
+		
+		startNewGame();
+	}
+	
+	private void startNewGame()
+	{
+		score = 0;
+
+		beginGame();
+	}
+	
+	private void gameOver()
+	{
+		wPanel.showAllWords();
+
+		int option = JOptionPane.showConfirmDialog( this,
+				"You lose. Bad luck. Play again?", "Game Over",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE );
+		
+		if( option == JOptionPane.YES_OPTION )
+			startNewGame();
+	}
+	
+	private void continueGame()
+	{
+		wPanel.showAllWords();
+		
+		JOptionPane.showMessageDialog( this,
+				"Congratulations! You made it through this round.",
+				"You Win", JOptionPane.INFORMATION_MESSAGE );
+
+		beginGame();
+	}
+	
+	private void beginGame()
+	{
+		currentEntry = selectWord();
+		
+		wPanel.setWordList( currentEntry.getLinkedWords() );
+
+		poolLetters.replace( 0, WORD_LENGTH, currentEntry.getHeadWord() );
+		shuffleLetters( poolLetters );
+		
+		for( int i = 0; i < WORD_LENGTH; i++ )
+			guessLetters.setCharAt( i, ' ' );
+		
+		letterPool.update( poolLetters.toString() );
+		guessArea.update( guessLetters.toString() );
+		
+		guessWordLength = 0;
+		longWordGuessed = false;		
+		
+		initialiseTimer();		
+	}
+	
+	private DictionaryEntry selectWord()
+	{
+		int entry = (int) (Math.random() * dict.getEntryCount());
+		
+		return dict.getEntry( entry );
+	}
+	
+	private void shuffleLetters( StringBuffer letters )
+	{
+		int  swap;
+		char intermediate;
+
+		for( int passes = 0; passes < 10; passes++ )
+		    for( int i = 0; i < WORD_LENGTH; i++ )
+			{
+				swap = (int) (Math.random() * WORD_LENGTH);
+				swap %= WORD_LENGTH;
+				intermediate = letters.charAt(i);
+				letters.setCharAt( i, letters.charAt(swap) );
+				letters.setCharAt( swap, intermediate );
+			}
+	}
+	
+	private void initialiseTimer()
+	{
+		countdown = TIMER_LENGTH;
+		updateInterval.start();
 	}
 
 	public void keyTyped( KeyEvent e )
@@ -77,14 +170,19 @@ public class Twist extends JFrame
 		if( guessWordLength > WORD_LENGTH )
 			return;
 		
+		if( countdown < 1 )
+			return;
+		
 		if( e.getKeyChar() == '\n' )
 		{
 			processWord();
 			return;
 		}
+		
+		guessArea.setWarning( false );
 
 		for( int i = 0; i < WORD_LENGTH; i++ )
-			if( e.getKeyChar() == poolLetters.charAt(i) )
+			if( Character.toUpperCase(e.getKeyChar()) == poolLetters.charAt(i) )
 			{
 				guessLetters.setCharAt( guessWordLength++, poolLetters.charAt(i) );
 				poolLetters.setCharAt( i, '-' );
@@ -97,22 +195,43 @@ public class Twist extends JFrame
 
 	private void processWord()
 	{
-		if( guessWordLength == 0 )
-			return;
-
 		Iterator<String> iter = currentEntry.getLinkedWords().iterator();
 		String           currentWord;
+		int              wordLength;
+		boolean          matchFound = false;
+
+		if( guessWordLength == 0 )
+			return;
 
 		while( iter.hasNext() )
 		{
 			currentWord = iter.next();
 
 			if( guessLetters.substring(0, guessWordLength).equals(currentWord) )
+			{
 				wPanel.showWord( currentWord );
+				matchFound = true;
+			}
 		}
+
+		if( matchFound )
+		{
+			wordLength = guessWordLength;
+
+			for( int i = 0; i < wordLength; i++ )
+				deleteLetter();
+			
+			score += Math.pow( 2, wordLength );
+			statusArea.setScore( score );
+			
+			if( wordLength == WORD_LENGTH )
+				longWordGuessed = true;
+		}
+		else
+			guessArea.setWarning( true );
 		
-		for( int i = 0; i < guessWordLength; i++ )
-			deleteLetter();
+		letterPool.update( poolLetters.toString() );
+		guessArea.update( guessLetters.toString() );
 	}
 
 	public void keyPressed( KeyEvent e )
@@ -126,6 +245,8 @@ public class Twist extends JFrame
 			
 			letterPool.update( poolLetters.toString() );
 			guessArea.update( guessLetters.toString() );
+			
+			guessArea.setWarning( false );
 		}
 	}
 
@@ -146,5 +267,29 @@ public class Twist extends JFrame
 
 	public void actionPerformed( ActionEvent e )
 	{
+		if( e.getActionCommand().equals( "timer0" ) )
+		{
+			countdown--;
+			statusArea.setTimer( countdown );
+			
+			if( countdown == 0 )
+			{
+				updateInterval.stop();
+
+				if( longWordGuessed )
+					continueGame();
+				else
+					gameOver();
+			}
+		}
+		else if( e.getActionCommand().equals( "start" ) )
+		{
+			startNewGame();
+		}
+		else if( e.getActionCommand().equals( "shuffle" ) )
+		{
+			shuffleLetters( poolLetters );
+			letterPool.update( poolLetters.toString() );
+		}
 	}
 }
