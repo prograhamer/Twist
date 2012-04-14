@@ -1,0 +1,10 @@
+A simple word game, in which you are given a set of seven letters and you have to find all the words that can be made with them. At least one seven letter word has to be found, in order to progress to the next round.
+
+The game can be built and run as follows:
+
+ javac *.java
+ java Twist
+
+The words are derived from the ispell wordlist present on many Linux systems.
+
+There is a perl script in the dictionary/ directory that extracts all the common nouns from the word list. If the program InitDictionary and dependent classes are compiled and the program run, a new dict.data file will be generated in the main program folder, based on the file dictionary/words2. This may be useful to generate gaming dictionaries for other languages.
