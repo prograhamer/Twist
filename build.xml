@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<project name="Twist" default="cleandist" basedir=".">
+	<property name="src"   location="twist/" />
+	<property name="build" location="build/" />
+	<property name="dist"  location="dist/" />
+	
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${build}" />
+	</target>
+	
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" destdir="${build}" includeantruntime="false" />
+	</target>
+	
+	<target name="dist" depends="compile">
+		<mkdir dir="${dist}" />
+		<jar destfile="${dist}/Twist.jar" basedir="${build}" manifest="${src}/manifest.mf" />
+	</target>
+	
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+	
+	<target name="cleandist" depends="clean, dist" />
+</project>
