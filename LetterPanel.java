@@ -4,6 +4,8 @@ import javax.swing.border.SoftBevelBorder;
 
 public class LetterPanel extends JPanel
 {
+    static final long serialVersionUID = 869907805526468996L;
+
 	private JLabel [] letters;
 	private final Color standardBackground, warningBackground;
 

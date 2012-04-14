@@ -3,7 +3,6 @@ import java.util.Iterator;
 import java.io.*;
 
 class Dictionary
-	implements Serializable
 {
 	private Vector<DictionaryEntry> entries;
 	private final String            DEFAULT_FILENAME = "dict.data";
@@ -17,10 +16,6 @@ class Dictionary
 		dict.loadFromWordList( fileName );
 
 		dict.saveDictionary();
-
-		Dictionary dict2 = new Dictionary();
-
-		dict2.loadDictionary();
 	}
 
 	Dictionary()
@@ -55,10 +50,10 @@ class Dictionary
 
 			while( (line = buffRead.readLine()) != null )
 			{
-				if( line.length() < 7 )
-					shortWords.add( line.toUpperCase() );
-				else
+				if( line.length() == 7 )
 					entries.add( new DictionaryEntry( line.toUpperCase() ) );
+				
+				shortWords.add( line.toUpperCase() );
 			}
 		}
 		catch( IOException ioe )
@@ -77,7 +72,7 @@ class Dictionary
 			boolean          matchFound;
 
 			entry = entryIterator.next();
-
+			
 			shortIter = shortWords.iterator();
 
 			while( shortIter.hasNext() )
@@ -85,6 +80,9 @@ class Dictionary
 				entryArray = entry.getHeadWord().toCharArray();
 
 				shortWord = shortIter.next();
+				
+				if( shortWord.equals( entry.getHeadWord() ) )
+					continue;
 
 				matchFound = false;
 
@@ -113,6 +111,16 @@ class Dictionary
 			entry.addLinkedWord( entry.getHeadWord() );
 
 			entry.finalise();
+		}
+
+		for( int i = 0; i < entries.size(); i++ )
+		{
+			if( entries.elementAt(i).getLinkedWords().size() > 50 )
+			{
+				System.out.println( "Removing: " + entries.elementAt(i) );
+				entries.remove(i);
+				i--;
+			}
 		}
 
 		entries.trimToSize();

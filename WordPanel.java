@@ -6,6 +6,8 @@ import java.util.Iterator;
 
 class WordPanel extends JPanel
 {
+    static final long serialVersionUID = -7766686790120866435L;
+
 	Word [] words;
 	private final int NO_COLUMNS = 5;
 	private JPanel hBox;

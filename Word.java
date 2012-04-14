@@ -3,6 +3,8 @@ import javax.swing.*;
 
 class Word extends JPanel
 {
+    static final long serialVersionUID = -1117969609654322967L;
+ 
 	private JLabel [] letters;
 	private String text;
 

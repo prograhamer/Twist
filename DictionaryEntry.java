@@ -6,6 +6,8 @@ import java.io.Serializable;
 class DictionaryEntry
 	implements Serializable
 {
+    static final long serialVersionUID = -72359880169567976L;
+ 
 	private String headWord;
 	private Vector<String> linkedWords;
 

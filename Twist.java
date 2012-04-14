@@ -6,11 +6,14 @@ import java.util.Iterator;
 public class Twist extends JFrame
 	implements KeyListener, ActionListener
 {
+    static final long       serialVersionUID = -8940617936892412173L;
+    
 	private Dictionary	    dict;
 	private WordPanel       wPanel;
 	private LetterPanel     letterPool, guessArea;
 	private StatusPanel     statusArea;
 	private DictionaryEntry currentEntry;
+	private WordManager     wordManager;
 	private JPanel          top;
 	private Timer           updateInterval;
 	private StringBuffer    poolLetters, guessLetters;
@@ -22,6 +25,7 @@ public class Twist extends JFrame
 
 	private final int       WORD_LENGTH = 7;
 	private final int       TIMER_LENGTH = 120;
+	private final int       FINISHING_BONUS = 1024;
 
 	public static void main( String args[] )
 	{
@@ -119,7 +123,7 @@ public class Twist extends JFrame
 	{
 		currentEntry = selectWord();
 		
-		wPanel.setWordList( currentEntry.getLinkedWords() );
+		wordManager = new WordManager( currentEntry, wPanel );
 
 		poolLetters.replace( 0, WORD_LENGTH, currentEntry.getHeadWord() );
 		shuffleLetters( poolLetters );
@@ -197,24 +201,28 @@ public class Twist extends JFrame
 	{
 		Iterator<String> iter = currentEntry.getLinkedWords().iterator();
 		String           currentWord;
+		String           guessedWord;
 		int              wordLength;
 		boolean          matchFound = false;
 
 		if( guessWordLength == 0 )
 			return;
+		
+		guessedWord = guessLetters.substring(0, guessWordLength);
 
 		while( iter.hasNext() )
 		{
 			currentWord = iter.next();
 
-			if( guessLetters.substring(0, guessWordLength).equals(currentWord) )
+			if( guessedWord.equals(currentWord) )
 			{
-				wPanel.showWord( currentWord );
 				matchFound = true;
+				break;
 			}
 		}
 
-		if( matchFound )
+		if( matchFound &&
+		    ! wordManager.isWordGuessed(guessedWord) )
 		{
 			wordLength = guessWordLength;
 
@@ -226,6 +234,18 @@ public class Twist extends JFrame
 			
 			if( wordLength == WORD_LENGTH )
 				longWordGuessed = true;
+			
+			wordManager.setWordGuessed(guessedWord);
+			
+			if( wordManager.allWordsGuessed() )
+			{
+				updateInterval.stop();
+
+				score += FINISHING_BONUS;
+				statusArea.setScore( score );
+
+				continueGame();
+			}
 		}
 		else
 			guessArea.setWarning( true );
