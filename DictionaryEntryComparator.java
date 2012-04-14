@@ -1,6 +1,14 @@
 import java.util.Comparator;
 import java.io.Serializable;
 
+/**
+ * 
+ * @author blackm0k
+ * 
+ * Simple comparator used to sort the linkedWordList of a DictionaryEntry by length and then
+ * lexicographically within the same length. 
+ *
+ */
 class DictionaryEntryComparator
 	implements Comparator<String>, Serializable
 {

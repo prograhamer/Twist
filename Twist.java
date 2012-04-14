@@ -3,40 +3,66 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.Iterator;
 
+/**
+ * Main class for the Twist game. Contains the main method as well as the vast majority of
+ * game processing.
+ * 
+ * @author blackm0k
+ *
+ */
 public class Twist extends JFrame
 	implements KeyListener, ActionListener
 {
     static final long       serialVersionUID = -8940617936892412173L;
-    
-	private Dictionary	    dict;
+
+    // Display elements
 	private WordPanel       wPanel;
 	private LetterPanel     letterPool, guessArea;
 	private StatusPanel     statusArea;
+
+	// Dictionary handling objects
+	private Dictionary	    dict;
 	private DictionaryEntry currentEntry;
-	private WordManager     wordManager;
-	private JPanel          top;
-	private Timer           updateInterval;
+
+	// Elements for tracking progress within a single round
+	private WordManager     wordManager;	
 	private StringBuffer    poolLetters, guessLetters;
 	private int             guessWordLength;
-	
-	private int             score;
+	private Timer           updateInterval;
 	private boolean         longWordGuessed;
 	private int             countdown;
 
-	private final int       WORD_LENGTH = 7;
+	// Current score across all rounds
+	private int             score;
+
+	// Defined length of longest words, has implications in most aspects of the game.
+	// Notably it used by the Dictionary class when generating a dictionary from a word list
+	final static int        WORD_LENGTH = 7;
+
+	// Timer length in seconds
 	private final int       TIMER_LENGTH = 120;
+	// Bonus for getting all the words in a set
 	private final int       FINISHING_BONUS = 1024;
 
-	public static void main( String args[] )
+	/**
+	 * Create a new Twist object
+	 * 
+	 * @param args Not used.
+	 */
+	public static void main( String [] args )
 	{
-		Twist mainWindow = new Twist();
-
-		mainWindow.setVisible( true );
+		new Twist();
 	}
-
+	
+	/**
+	 * Create a new instance of the Twist game. Initialise all the display and game elements
+	 * and start a new game playing.
+	 */
 	public Twist()
 	{
 		super( "Twist" );
+		
+		JPanel top;
 
 		setDefaultCloseOperation( EXIT_ON_CLOSE );
 
@@ -84,17 +110,25 @@ public class Twist extends JFrame
 			poolLetters.append('-');
 			guessLetters.append(' ');
 		}
+
+		setVisible( true );
 		
 		startNewGame();
 	}
-	
+
+	/**
+	 * Start a new game with a score of zero.
+	 */
 	private void startNewGame()
 	{
 		score = 0;
 
-		beginGame();
+		startNewRound();
 	}
-	
+
+	/**
+	 * Give the option to start a new game when the player loses.
+	 */
 	private void gameOver()
 	{
 		wPanel.showAllWords();
@@ -107,7 +141,10 @@ public class Twist extends JFrame
 		if( option == JOptionPane.YES_OPTION )
 			startNewGame();
 	}
-	
+
+	/**
+	 * Begin a new round without resetting the score.
+	 */
 	private void continueGame()
 	{
 		wPanel.showAllWords();
@@ -116,37 +153,58 @@ public class Twist extends JFrame
 				"Congratulations! You made it through this round.",
 				"You Win", JOptionPane.INFORMATION_MESSAGE );
 
-		beginGame();
+		startNewRound();
 	}
-	
-	private void beginGame()
+
+	/**
+	 * Begin a new round.
+	 */
+	private void startNewRound()
 	{
+		// Select a new word
 		currentEntry = selectWord();
-		
+
+		// Create  word manager from the selected entry
 		wordManager = new WordManager( currentEntry, wPanel );
 
+		// Put the letters from the entry into the pool and shuffle them
 		poolLetters.replace( 0, WORD_LENGTH, currentEntry.getHeadWord() );
 		shuffleLetters( poolLetters );
-		
+
+		// Reset the guess area
 		for( int i = 0; i < WORD_LENGTH; i++ )
 			guessLetters.setCharAt( i, ' ' );
-		
+
+		// Update the display of both letter panels
 		letterPool.update( poolLetters.toString() );
 		guessArea.update( guessLetters.toString() );
-		
+
+		// Reset the necessary parts of the game state
 		guessWordLength = 0;
 		longWordGuessed = false;		
-		
-		initialiseTimer();		
+
+		// Start the clock ticking
+		startTimer();		
 	}
-	
+
+	/**
+	 * Select an entry at random from the dictionary.
+	 * 
+	 * @return The selected entry
+	 */
 	private DictionaryEntry selectWord()
 	{
 		int entry = (int) (Math.random() * dict.getEntryCount());
 		
 		return dict.getEntry( entry );
 	}
-	
+
+	/**
+	 * Shuffle the letters in the given StringBuffer by repeatedly swapping the letters at
+	 * two positions.
+	 * 
+	 * @param letters The StringBuffer to shuffle
+	 */
 	private void shuffleLetters( StringBuffer letters )
 	{
 		int  swap;
@@ -162,54 +220,63 @@ public class Twist extends JFrame
 				letters.setCharAt( swap, intermediate );
 			}
 	}
-	
-	private void initialiseTimer()
+
+	/**
+	 * Start the countdown timer.
+	 */
+	private void startTimer()
 	{
 		countdown = TIMER_LENGTH;
 		updateInterval.start();
 	}
+	
+	/**
+	 * Clear all letters from the guess area
+	 */
+	private void deleteAllLetters() {
+		// Run loop in reverse since deleteLetter will modify guessWordLength
+		for( int i = guessWordLength; i > 0; i-- )
+			deleteLetter();
+	}
 
-	public void keyTyped( KeyEvent e )
-	{
-		if( guessWordLength > WORD_LENGTH )
-			return;
-		
-		if( countdown < 1 )
-			return;
-		
-		if( e.getKeyChar() == '\n' )
-		{
-			processWord();
-			return;
-		}
-		
-		guessArea.setWarning( false );
+	/**
+	 * Clear a single letter from the guess area
+	 */
+	private void deleteLetter() {
 
+		// Do nothing if there is no letter to delete
+		if( guessWordLength == 0 )
+			return;
+		
 		for( int i = 0; i < WORD_LENGTH; i++ )
-			if( Character.toUpperCase(e.getKeyChar()) == poolLetters.charAt(i) )
+			if( poolLetters.charAt(i) == '-' )
 			{
-				guessLetters.setCharAt( guessWordLength++, poolLetters.charAt(i) );
-				poolLetters.setCharAt( i, '-' );
+				poolLetters.setCharAt( i, guessLetters.charAt(guessWordLength - 1) );
 				break;
 			}
 
-		letterPool.update( poolLetters.toString() );
-		guessArea.update( guessLetters.toString() );
+		guessLetters.setCharAt( --guessWordLength, ' ' );
 	}
+
 
 	private void processWord()
 	{
-		Iterator<String> iter = currentEntry.getLinkedWords().iterator();
+		Iterator<String> iter;
 		String           currentWord;
 		String           guessedWord;
-		int              wordLength;
-		boolean          matchFound = false;
+		boolean          matchFound;
 
 		if( guessWordLength == 0 )
 			return;
 		
+		// Remove the trailing spaces from the guessLetters string to find the guessed word
 		guessedWord = guessLetters.substring(0, guessWordLength);
 
+		iter = currentEntry.getLinkedWords().iterator();
+		matchFound = false;
+
+		// Check the guessed word against each linked word for the current entry, until a
+		// match is found
 		while( iter.hasNext() )
 		{
 			currentWord = iter.next();
@@ -221,91 +288,173 @@ public class Twist extends JFrame
 			}
 		}
 
+		// If a match was found and the word hasn't already been guessed, mark the word as
+		// guessed, update the game state (this could potentially have finished the round),
+		// and clear all letters from the guess area
 		if( matchFound &&
 		    ! wordManager.isWordGuessed(guessedWord) )
 		{
-			wordLength = guessWordLength;
-
-			for( int i = 0; i < wordLength; i++ )
-				deleteLetter();
-			
-			score += Math.pow( 2, wordLength );
-			statusArea.setScore( score );
-			
-			if( wordLength == WORD_LENGTH )
-				longWordGuessed = true;
-			
 			wordManager.setWordGuessed(guessedWord);
-			
-			if( wordManager.allWordsGuessed() )
-			{
-				updateInterval.stop();
 
-				score += FINISHING_BONUS;
-				statusArea.setScore( score );
+			updateGameState( guessedWord );
 
-				continueGame();
-			}
+			deleteAllLetters();
 		}
+		// If no match found, or the word was already guessed, set the guess area's warning
+		// state
 		else
 			guessArea.setWarning( true );
 		
+		// Update the display for the letter pool and the guess area
 		letterPool.update( poolLetters.toString() );
 		guessArea.update( guessLetters.toString() );
 	}
 
+	/**
+	 * Update the game state, based on new information - either a word guessed or a change
+	 * in the countdown state
+	 */
+	private void updateGameState()
+	{
+		// If all words guessed or the countdown has hit zero, the round is over
+		if( wordManager.allWordsGuessed() || countdown == 0 )
+		{
+			updateInterval.stop();
+
+			if( countdown == 0 && ! longWordGuessed )
+				gameOver();
+			else
+				continueGame();
+		}		
+	}
+
+	/**
+	 * Update the game state when a new word is guessed. Calls updateGameState() to do the
+	 * generic game state (not word-related) game state processing.
+	 * 
+	 * @param word The word that was guessed
+	 */
+	private void updateGameState( String word )
+	{
+		if( word.length() == WORD_LENGTH )
+			longWordGuessed = true;
+		
+		updateScore( word );
+
+		updateGameState();
+	}
+
+	/**
+	 * Update the score given a word that has been successfully guessed.
+	 * 
+	 * @param word The word on which to base the score
+	 */
+	private void updateScore( String word )
+	{
+		score += Math.pow( 2, word.length() );
+		
+		if( wordManager.allWordsGuessed() )
+			score += FINISHING_BONUS;
+		
+		statusArea.setScore( score );
+	}
+
+	/**
+	 * Method implemented as part of KeyListener.
+	 * 
+	 * On entry of a character, check if it is in the letter pool and move it to the guess
+	 * area if it is.
+	 * On entry of a carriage return, process the guessed word - check if it is valid and
+	 * handle the knock-ons dependent on that.
+	 */
+	public void keyTyped( KeyEvent e )
+	{
+		// If the timer has run out, don't process keyboard input
+		if( countdown < 1 )
+			return;
+		
+		// If the enter key was pressed, process the guessed word and do nothing else
+		if( e.getKeyChar() == '\n' )
+		{
+			processWord();
+			return;
+		}
+
+		// If the guess are word is already at maximum length, don't do any more processing
+		if( guessWordLength == WORD_LENGTH )
+			return;
+
+		// Don't allow non-alphabetic input
+		if( ! Character.isLetter( e.getKeyChar() ) )
+			return;	
+
+		// Clear the warning status on new input
+		guessArea.setWarning( false );
+
+		// Check if the input character is in the pool, if so move it to the guess area
+		for( int i = 0; i < WORD_LENGTH; i++ )
+			if( Character.toUpperCase(e.getKeyChar()) == poolLetters.charAt(i) )
+			{
+				guessLetters.setCharAt( guessWordLength++, poolLetters.charAt(i) );
+				poolLetters.setCharAt( i, '-' );
+				break;
+			}
+
+		// Update the display of both letter panels
+		letterPool.update( poolLetters.toString() );
+		guessArea.update( guessLetters.toString() );
+	}
+
+
+	/**
+	 * Method implemented as part of KeyListener.
+	 * 
+	 * Handle a backspace press - delete a letter from the guess area
+	 */
 	public void keyPressed( KeyEvent e )
 	{
 		if( e.getKeyCode() == KeyEvent.VK_BACK_SPACE )
 		{
-			if( guessWordLength == 0 )
-				return;
-
 			deleteLetter();
-			
+
+			// Clear warning on change in the guess area 
+			guessArea.setWarning( false );
+
 			letterPool.update( poolLetters.toString() );
 			guessArea.update( guessLetters.toString() );
-			
-			guessArea.setWarning( false );
 		}
 	}
 
-	private void deleteLetter() {
-		for( int i = 0; i < WORD_LENGTH; i++ )
-			if( poolLetters.charAt(i) == '-' )
-			{
-				poolLetters.setCharAt( i, guessLetters.charAt(guessWordLength - 1) );
-				break;
-			}
-
-		guessLetters.setCharAt( --guessWordLength, ' ' );
-	}
-
+	/**
+	 * Implemented as part of KeyListener.
+	 * 
+	 * Not used.
+	 */
 	public void keyReleased( KeyEvent e )
 	{
 	}
 
+	/**
+	 * Handler for ActionEvents generated by the countdown timer and the buttons in the
+	 * status area.
+	 */
 	public void actionPerformed( ActionEvent e )
 	{
+		// If handling an event generated by the timer, decrement the countdown by one.
+		// If the countdown reaches zero, stop the timer and handle the end of the round
 		if( e.getActionCommand().equals( "timer0" ) )
 		{
 			countdown--;
 			statusArea.setTimer( countdown );
 			
-			if( countdown == 0 )
-			{
-				updateInterval.stop();
-
-				if( longWordGuessed )
-					continueGame();
-				else
-					gameOver();
-			}
+			updateGameState();
 		}
+		// Generated by the "Start new game" button
 		else if( e.getActionCommand().equals( "start" ) )
 		{
 			startNewGame();
 		}
+		// Generated by the "Shuffle" button
 		else if( e.getActionCommand().equals( "shuffle" ) )
 		{
 			shuffleLetters( poolLetters );
