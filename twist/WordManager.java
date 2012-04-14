@@ -1,3 +1,5 @@
+package twist;
+
 /**
  * Class to manage the status of the words with respect to whether they have been guessed or
  * not and to update their display based thereupon.
