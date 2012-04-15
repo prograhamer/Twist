@@ -1,9 +1,8 @@
 package twist;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
-
 import java.util.Iterator;
 
 /**
@@ -29,7 +28,7 @@ public class Twist extends JFrame
 
 	// Elements for tracking progress within a single round
 	private WordManager     wordManager;	
-	private StringBuffer    poolLetters, guessLetters;
+	private StringBuilder   poolLetters, guessLetters;
 	private int             guessWordLength;
 	private Timer           updateInterval;
 	private boolean         longWordGuessed;
@@ -105,8 +104,8 @@ public class Twist extends JFrame
 		dict = new Dictionary();
 		dict.loadDictionary();
 
-		poolLetters = new StringBuffer( WORD_LENGTH );
-		guessLetters = new StringBuffer( WORD_LENGTH );
+		poolLetters = new StringBuilder( WORD_LENGTH );
+		guessLetters = new StringBuilder( WORD_LENGTH );
 
 		for( int i = 0; i < WORD_LENGTH; i++ )
 		{
@@ -125,6 +124,7 @@ public class Twist extends JFrame
 	private void startNewGame()
 	{
 		score = 0;
+		statusArea.setScore(score);
 
 		startNewRound();
 	}
@@ -203,12 +203,12 @@ public class Twist extends JFrame
 	}
 
 	/**
-	 * Shuffle the letters in the given StringBuffer by repeatedly swapping the letters at
+	 * Shuffle the letters in the given StringBuilder by repeatedly swapping the letters at
 	 * two positions.
 	 * 
-	 * @param letters The StringBuffer to shuffle
+	 * @param letters The StringBuilder to shuffle
 	 */
-	private void shuffleLetters( StringBuffer letters )
+	private void shuffleLetters( StringBuilder letters )
 	{
 		int  swap;
 		char intermediate;
@@ -416,6 +416,10 @@ public class Twist extends JFrame
 	 */
 	public void keyPressed( KeyEvent e )
 	{
+		// If the round is over, don't allow any more changes to the guess area
+		if( countdown < 1 )
+			return;
+
 		if( e.getKeyCode() == KeyEvent.VK_BACK_SPACE )
 		{
 			deleteLetter();
