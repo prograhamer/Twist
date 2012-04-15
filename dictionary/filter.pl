@@ -1,6 +1,8 @@
-#!/usr/bin/perl -W
+#!/usr/bin/perl -w
 
-open( $input, "<", "/usr/share/dict/words" ) or die "Cannot open file";
+if( $#ARGV != 0 ) { print "Usage: filter.pl <filename>\n"; exit 1; }
+
+open( $input, "<", "$ARGV[0]" ) or die "Cannot open file: $ARGV[0]";
 
 while( <$input> )
 {
