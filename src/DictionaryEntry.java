@@ -1,5 +1,3 @@
-package twist;
-
 import java.util.Vector;
 import java.util.Collections;
 import java.util.Iterator;

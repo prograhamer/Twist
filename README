@@ -22,5 +22,5 @@ So to generate a new wordlist in a particular dialect, and start a game using it
  cd dictionary
  perl filter.pl /usr/share/dict/canadian-english-large > can-words
  cd ../dist
- java -cp Twist.jar twist/InitDictionary ../dictionary/can-words
+ java -cp Twist.jar InitDictionary ../dictionary/can-words
  java -jar Twist.jar
