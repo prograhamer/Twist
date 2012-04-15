@@ -383,6 +383,13 @@ public class Twist extends JFrame
 			return;
 		}
 
+		// Shuffle the letters in the pool when spacebar is pressed
+		if( e.getKeyChar() == ' ' )
+		{
+			shuffleLetters( poolLetters );
+			letterPool.update( poolLetters.toString() );
+		}
+
 		// If the guess are word is already at maximum length, don't do any more processing
 		if( guessWordLength == WORD_LENGTH )
 			return;
