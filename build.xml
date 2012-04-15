@@ -3,6 +3,7 @@
 	<property name="src"   location="twist/" />
 	<property name="build" location="build/" />
 	<property name="dist"  location="dist/" />
+	<property name="data"  location="." />
 	
 	<target name="init">
 		<tstamp />
@@ -16,6 +17,7 @@
 	<target name="dist" depends="compile">
 		<mkdir dir="${dist}" />
 		<jar destfile="${dist}/Twist.jar" basedir="${build}" manifest="${src}/manifest.mf" />
+		<copy file="${data}/dict.data" todir="${dist}" />
 	</target>
 	
 	<target name="clean">
