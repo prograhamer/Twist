@@ -11,6 +11,12 @@ class InitDictionary
 {
 	public static void main( String [] args )
 	{
-		Dictionary.createFromWordList( "dictionary/words" );
+		if( args.length < 1 )
+		{
+			System.err.println( "Usage: java InitDictionary <wordListFile>" );
+			return;
+		}
+
+		Dictionary.createFromWordList( args[0] );
 	}
 }

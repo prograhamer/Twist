@@ -2,9 +2,16 @@ A simple word game, in which you are given a set of seven letters and you have t
 
 The game can be built and run as follows:
 
- javac *.java
- java Twist
+ ant
+ cd twist
+ java -jar Twist.jar
 
 The words are derived from the ispell wordlist present on many Linux systems.
 
-There is a perl script in the dictionary/ directory that extracts all the common nouns from the word list. If the program InitDictionary and dependent classes are compiled and the program run, a new dict.data file will be generated in the main program folder, based on the file dictionary/words. This may be useful to generate gaming dictionaries for other languages.
+There is a perl script in the dictionary/ directory that extracts all the common nouns from the word list. If the program InitDictionary and dependent classes are compiled and the program run, a new dict.data file will be generated in the main program folder, based on the file specified in the command line argument. This may be useful to generate gaming dictionaries for other languages.
+
+This may be built and run as follows:
+
+ ant
+ cd twist
+ java -cp Twist.jar twist/InitDictionary <path_to_wordlist>
