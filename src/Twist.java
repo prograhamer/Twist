@@ -13,36 +13,39 @@ import java.util.Iterator;
 public class Twist extends JFrame
 	implements KeyListener, ActionListener
 {
-    static final long       serialVersionUID = -8940617936892412173L;
+    static final long        serialVersionUID = -8940617936892412173L;
 
     // Display elements
-	private WordPanel       wPanel;
-	private LetterPanel     letterPool, guessArea;
-	private StatusPanel     statusArea;
+	private WordPanel        wPanel;
+	private LetterPanel      letterPool, guessArea;
+	private StatusPanel      statusArea;
 
 	// Dictionary handling objects
-	private Dictionary	    dict;
-	private DictionaryEntry currentEntry;
+	private Dictionary	     dict;
+	private DictionaryEntry  currentEntry;
+	
+	// High score manager
+	private HighScoreManager highScores;
 
 	// Elements for tracking progress within a single round
-	private WordManager     wordManager;	
-	private StringBuilder   poolLetters, guessLetters;
-	private int             guessWordLength;
-	private Timer           updateInterval;
-	private boolean         longWordGuessed;
-	private int             countdown;
+	private WordManager      wordManager;	
+	private StringBuilder    poolLetters, guessLetters;
+	private int              guessWordLength;
+	private Timer            updateInterval;
+	private boolean          longWordGuessed;
+	private int              countdown;
 
 	// Current score across all rounds
-	private int             score;
+	private int              score;
 
 	// Defined length of longest words, has implications in most aspects of the game.
 	// Notably it used by the Dictionary class when generating a dictionary from a word list
-	final static int        WORD_LENGTH = 7;
+	final static int         WORD_LENGTH = 7;
 
 	// Timer length in seconds
-	private final int       TIMER_LENGTH = 120;
+	private final int        TIMER_LENGTH = 120;
 	// Bonus for getting all the words in a set
-	private final int       FINISHING_BONUS = 1024;
+	private final int        FINISHING_BONUS = 1024;
 
 	/**
 	 * Create a new Twist object
@@ -62,10 +65,12 @@ public class Twist extends JFrame
 	{
 		super( "Twist" );
 		
-		JPanel top;
+		JPanel    top;
 
 		setDefaultCloseOperation( EXIT_ON_CLOSE );
-
+		
+		createMenu();
+		
 		setLayout( new BorderLayout() );
 
 		top = new JPanel();
@@ -110,10 +115,57 @@ public class Twist extends JFrame
 			poolLetters.append('-');
 			guessLetters.append(' ');
 		}
+		
+		highScores = new HighScoreManager();
+		highScores.readFromFile();
 
 		setVisible( true );
+	}
+	
+	private void createMenu()
+	{
+		JMenuBar  menuBar;
+		JMenu     menu;
+		JMenuItem menuItem;
+
+		menuBar = new JMenuBar();
 		
-		startNewGame();
+		menu = new JMenu( "Game" );
+		menu.setMnemonic( 'g' );
+		menuItem = new JMenuItem( "Start new game");
+		menuItem.setMnemonic( 'n' );
+		menuItem.setActionCommand( "start" ); // Action common with "Start new game" button
+		menuItem.addActionListener( this );
+		menu.add( menuItem );
+		menuItem = new JMenuItem( "Show high scores");
+		menuItem.setMnemonic( 'h' );
+		menuItem.setActionCommand( "highscores" );
+		menuItem.addActionListener( this );
+		menu.add( menuItem );
+		menuItem = new JMenuItem( "Exit" );
+		menuItem.setMnemonic( 'x' );
+		menuItem.setActionCommand( "exit" );
+		menuItem.addActionListener( this );
+		menu.add( menuItem );
+		menuBar.add( menu );
+
+		menu = new JMenu( "Help" );
+		menu.setMnemonic( 'h' );
+		menuItem = new JMenuItem( "About" );
+		menuItem.setMnemonic( 'b' );
+		menuItem.setActionCommand( "about" );
+		menuItem.addActionListener( this );
+		menu.add( menuItem );
+		menuBar.add( menu );
+		
+		setJMenuBar( menuBar );
+	}
+	
+	private void showAboutDialog()
+	{
+		JOptionPane.showMessageDialog( this,
+				                       "Twist by blackm0k",
+				                       "About Twist", JOptionPane.INFORMATION_MESSAGE );
 	}
 
 	/**
@@ -133,12 +185,19 @@ public class Twist extends JFrame
 	private void gameOver()
 	{
 		wPanel.showAllWords();
-
+		
 		int option = JOptionPane.showConfirmDialog( this,
 				"You lose. Bad luck. Play again?", "Game Over",
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE );
-		
+
+		// If this is a high score, get the user's name and submit the high score
+		if( highScores.isHighScore( score ) )
+		{
+			highScores.submitScore( HighScoreWindow.getNameFromUser(this), score );
+			highScores.writeToFile();
+		}
+
 		if( option == JOptionPane.YES_OPTION )
 			startNewGame();
 	}
@@ -471,6 +530,18 @@ public class Twist extends JFrame
 		{
 			shuffleLetters( poolLetters );
 			letterPool.update( poolLetters.toString() );
+		}
+		else if( e.getActionCommand().equals( "highscores" ) )
+		{
+			HighScoreWindow.showHighScoreWindow( this, highScores.getScores() );
+		}
+		else if( e.getActionCommand().equals( "exit" ) )
+		{
+			System.exit(0);
+		}
+		else if( e.getActionCommand().equals( "about" ) )
+		{
+			showAboutDialog();
 		}
 	}
 }
