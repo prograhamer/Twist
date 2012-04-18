@@ -148,4 +148,14 @@ class WordPanel extends JPanel
 		for( int i = 0; i < words.length; i++ )
 			words[i].update(false);
 	}
+	
+	/**
+	 * Show remaining words, highlighted in red.
+	 */
+	void showRemainingWords()
+	{
+		for( int i = 0; i < words.length; i++ )
+			if( ! words[i].getVisibility() )
+				words[i].update( true, Color.red );
+	}
 }

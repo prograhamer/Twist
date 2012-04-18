@@ -188,7 +188,7 @@ public class Twist extends JFrame
 		JDialog     dialog;
 		Object      selectedValue;
 
-		wPanel.showAllWords();
+		wPanel.showRemainingWords();
 
 		// Use a custom option pane to avoid hitting enter meaning that a new game is
 		// immediately started without the player being able to see what the words were
@@ -234,7 +234,7 @@ public class Twist extends JFrame
 		JOptionPane pane;
 		JDialog     dialog;
 
-		wPanel.showAllWords();
+		wPanel.showRemainingWords();
 
 		// Use a custom option pane to avoid hitting enter meaning that a new game is
 		// immediately started without the player being able to see what the words were
@@ -250,8 +250,6 @@ public class Twist extends JFrame
 		startNewRound();
 
 		/*
-		wPanel.showAllWords();
-		
 		JOptionPane.showMessageDialog( this,
 				"Congratulations! You made it through this round.",
 				"You Win", JOptionPane.INFORMATION_MESSAGE );
