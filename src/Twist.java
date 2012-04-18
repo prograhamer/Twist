@@ -184,12 +184,24 @@ public class Twist extends JFrame
 	 */
 	private void gameOver()
 	{
+		JOptionPane pane;
+		JDialog     dialog;
+		Object      selectedValue;
+
 		wPanel.showAllWords();
-		
-		int option = JOptionPane.showConfirmDialog( this,
-				"You lose. Bad luck. Play again?", "Game Over",
-				JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE );
+
+		// Use a custom option pane to avoid hitting enter meaning that a new game is
+		// immediately started without the player being able to see what the words were
+		pane = new JOptionPane( "You lose. Bad luck. Play again?",
+				                JOptionPane.QUESTION_MESSAGE,
+				                JOptionPane.YES_NO_OPTION,
+				                null,
+				                new String[] {"Yes", "No"}, null );
+
+		dialog = pane.createDialog( "Game Over" );
+		dialog.setVisible( true );
+
+		selectedValue = pane.getValue();
 
 		// If this is a high score, get the user's name and submit the high score
 		if( highScores.isHighScore( score ) )
@@ -198,8 +210,20 @@ public class Twist extends JFrame
 			highScores.writeToFile();
 		}
 
+		if( selectedValue != null && selectedValue.equals( "Yes" ) ) 
+			startNewGame();
+
+/*
+		int option = JOptionPane.showConfirmDialog( this,
+				"You lose. Bad luck. Play again?", "Game Over",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE );
+
+
+
 		if( option == JOptionPane.YES_OPTION )
 			startNewGame();
+ */
 	}
 
 	/**
@@ -207,6 +231,25 @@ public class Twist extends JFrame
 	 */
 	private void continueGame()
 	{
+		JOptionPane pane;
+		JDialog     dialog;
+
+		wPanel.showAllWords();
+
+		// Use a custom option pane to avoid hitting enter meaning that a new game is
+		// immediately started without the player being able to see what the words were
+		pane = new JOptionPane( "Congratulations! You made it through this round.",
+				                JOptionPane.INFORMATION_MESSAGE,
+				                JOptionPane.OK_OPTION,
+				                null,
+				                new String[] {"Okay"}, null );
+
+		dialog = pane.createDialog( "You Win" );
+		dialog.setVisible( true );
+
+		startNewRound();
+
+		/*
 		wPanel.showAllWords();
 		
 		JOptionPane.showMessageDialog( this,
@@ -214,6 +257,7 @@ public class Twist extends JFrame
 				"You Win", JOptionPane.INFORMATION_MESSAGE );
 
 		startNewRound();
+		 */
 	}
 
 	/**
